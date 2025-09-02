@@ -1,0 +1,164 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #282c34;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+#gamepad {
+    position: relative;
+    width: 500px;
+    height: 300px;
+    background-color: #444;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.button, .joystick {
+    position: absolute;
+    background-color: #777;
+    border-radius: 50%;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+}
+
+.button:active, .joystick:active {
+    background-color: #555;
+}
+
+#dpad-up {
+    top: 90px;
+    left: 50px;
+    width: 30px;
+    height: 30px;
+}
+
+#dpad-down {
+    top: 150px;
+    left: 50px;
+    width: 30px;
+    height: 30px;
+}
+
+#dpad-left {
+    top: 120px;
+    left: 20px;
+    width: 30px;
+    height: 30px;
+}
+
+#dpad-right {
+    top: 120px;
+    left: 80px;
+    width: 30px;
+    height: 30px;
+}
+
+#button-a {
+    top: 120px;
+    right: 60px;
+    width: 30px;
+    height: 30px;
+    background-color: #0f0;
+}
+
+#button-b {
+    top: 90px;
+    right: 90px;
+    width: 30px;
+    height: 30px;
+    background-color: #f00;
+}
+
+#button-x {
+    top: 90px;
+    right: 30px;
+    width: 30px;
+    height: 30px;
+    background-color: #00f;
+}
+
+#button-y {
+    top: 60px;
+    right: 60px;
+    width: 30px;
+    height: 30px;
+    background-color: #ff0;
+}
+
+#button-start {
+    top: 60px;
+    left: 210px;
+    width: 40px;
+    height: 20px;
+    background-color: #666;
+    border-radius: 10px;
+}
+
+#button-back {
+    top: 60px;
+    left: 150px;
+    width: 40px;
+    height: 20px;
+    background-color: #666;
+    border-radius: 10px;
+}
+
+#button-lb, #button-rb {
+    top: 10px;
+    width: 50px;
+    height: 30px;
+    background-color: #666;
+    border-radius: 10px;
+}
+
+#button-lb {
+    left: 10px;
+}
+
+#button-rb {
+    right: 10px;
+}
+
+#button-lt, #button-rt {
+    top: 10px;
+    width: 30px;
+    height: 50px;
+    background-color: #666;
+    border-radius: 10px;
+}
+
+#button-lt {
+    left: 70px;
+}
+
+#button-rt {
+    right: 70px;
+}
+
+#left-stick, #right-stick {
+    width: 60px;
+    height: 60px;
+    background-color: #888;
+}
+
+#left-stick {
+    top: 150px;
+    left: 150px;
+}
+
+#right-stick {
+    top: 150px;
+    right: 150px;
+}
+
+#button-guide {
+    top: 120px;
+    left: 210px;
+    width: 40px;
+    height: 40px;
+    background-color: #ccc;
+}

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Gamepad Simulation</title>
+</head>
+<script>
+function validateIP(ip) {
+    const ipPattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    return ipPattern.test(ip);
+}
+
+function validatePort(port) {
+    const portNumber = parseInt(port, 10);
+    return portNumber >= 1 && portNumber <= 65535;
+}
+</script>
+<style>
+    :root {
+        --abxy-block-size: 40px; /* abxy_widget_size / 8 */
+        --joy-blocks: 6;
+        --stick-blocks: 1;
+        --abxy-blocks: 8;
+        --function-start-y: 20%;
+        --function-spacing: 15%;
+    }
+    html, body {
+        height: 100%;
+        margin: 0;
+        font-family: Arial, sans-serif;
+    }
+    .allcenter {
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    #submit {
+        width: 100%;
+    }
+    #app-control {
+        height: 100%;
+        display: none;
+    }
+    #buttons-ljoy {
+        left: 15px;
+        top: 8rem;
+    }
+    .joy {
+        display: inherit;
+        position: absolute;
+        width: calc(var(--abxy-block-size) * var(--joy-blocks));
+        height: calc(var(--abxy-block-size) * var(--joy-blocks));
+        background-color: #777;
+        border-radius: 50%;
+        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+    }
+    .stick {
+        position: absolute;
+        /*transform: translate(calc(var(--abxy-block-size) * var(--joy-blocks) * 0.5 - var(--abxy-block-size) * var(--stick-blocks) * 0.5), calc(var(--abxy-block-size) * var(--joy-blocks) * 0.5 - var(--abxy-block-size) * var(--stick-blocks) * 0.5));*/
+        width: calc(var(--abxy-block-size) * var(--stick-blocks));
+        height: calc(var(--abxy-block-size) * var(--stick-blocks));
+        background-color: red;
+        border-radius: 50%;
+        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+    }
+    .joy .stick {
+        transform: translate(calc(var(--abxy-block-size) * var(--joy-blocks) * 0.5 - var(--abxy-block-size) * var(--stick-blocks) * 0.5), calc(var(--abxy-block-size) * var(--joy-blocks) * 0.5 - var(--abxy-block-size) * var(--stick-blocks) * 0.5));
+    }
+    #button-rstick {
+        transform: translate(calc(var(--abxy-block-size) * var(--abxy-blocks) * 0.5 - var(--abxy-block-size) * var(--stick-blocks) * 0.5), calc(var(--abxy-block-size) * var(--abxy-blocks) * 0.5 - var(--abxy-block-size) * var(--stick-blocks) * 0.5));
+    }
+    #buttons-abxy {
+        width: calc(var(--abxy-block-size) * var(--abxy-blocks));
+        height: calc(var(--abxy-block-size) * var(--abxy-blocks));
+        display: block;
+        /* background-color: blueviolet; */
+        background-color: #777;
+        border-radius: 50%;
+        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+        position: absolute;
+        right: 10px;
+        top: 3rem;
+    }
+    .button {
+        position: absolute;
+        border-radius: 50%;
+        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+        width: calc(var(--abxy-block-size) * 3);
+        height: calc(var(--abxy-block-size) * 3);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        user-select: none;
+        font-weight: bold;
+        font-size:larger;
+    }
+    .button_active {
+        background-color: #aaa !important;
+    }
+    .trigger {
+        background-color: #aaa;
+        border-radius: 6px;
+        width: calc(var(--abxy-block-size) * 4);
+        height: calc(var(--abxy-block-size));
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+        font-weight: bold;
+        position: absolute;
+    }
+    #button-ls {
+        background-color:yellowgreen;
+        right: calc(var(--abxy-block-size) * 13.5 + 10px);
+    }
+
+    #button-rs {
+        right: calc(var(--abxy-block-size) * 9 + 10px);
+        background-color:lightgreen;
+    }
+    #button-ls-a {
+        background-color:yellowgreen;
+        right: calc(var(--abxy-block-size) * 4.5 + 10px);
+    }
+    #button-ls-x {
+        right: 10px;
+        background-color: lightgreen;
+    }
+    #button-lt {
+        left: 10%;
+        background-color: aquamarine;
+    }
+    #button-rt {
+        left: 30%;
+        background-color: cadetblue;
+    }
+    #buttons-function {
+        left: calc(var(--abxy-block-size) * var(--joy-blocks) * 1.25);
+        top: var(--function-start-y);
+        position: absolute;
+    }
+    #buttons-function div {
+        position: relative;
+        margin-top: 15%;
+    }
+    #button-start {
+        background-color: lightsalmon;
+    }
+    #button-back {
+        background-color: tan;
+    }
+    #button-guide {
+        background-color: burlywood;
+    }
+    #button-a {
+        left: calc(var(--abxy-block-size) * 2.5);
+        top: calc(var(--abxy-block-size) * 5);
+        background-color: darkgreen;
+        color: lightgreen;
+    }
+    #button-b {
+        left: calc(var(--abxy-block-size) * 5);
+        top: calc(var(--abxy-block-size) * 2.5);
+        background-color: darkred;
+        color: lightpink;
+    }
+    #button-x {
+        left: 0;
+        top: calc(var(--abxy-block-size) * 2.5);
+        background-color: darkblue;
+        color: lightblue;
+    }
+    #button-y {
+        left: calc(var(--abxy-block-size) * 2.5);
+        top: 0;
+        background-color: darkorange;
+        color: lightyellow;
+    }
+</style>
+<body>
+    <div id="app-connect" class="allcenter">
+        <form id="ip-port-form">
+            <div class="form-group">
+                <label for="ip-address">IP Address:</label>
+                <input type="text" id="ip-address" name="ip-address" placeholder="e.g., 192.168.0.1" required value="127.0.0.1">
+            </div>
+            <div class="form-group">
+                <label for="port">Port:</label>
+                <input type="text" id="port" name="port" placeholder="e.g., 8080" required value="12121">
+            </div>
+            <button type="submit" id="submit">Connect</button>
+        </form>
+    </div>
+    <div id="app-rotate" class="allcenter">
+        Rotate your phone to landscape mode.
+    </div>
+    <div id="app-fullscreen" class="allcenter">
+        <button id="enter_fullscreen" onclick="enterFullScreen()">Enter fullscreen</button>
+    </div>
+    <div id="app-control">
+        <div id="buttons-trigger">
+            <!-- <div id="button-lt" class="trigger">LT</div> -->
+            <!-- <div id="button-rt" class="trigger">RT</div> -->
+            <div id="button-ls" class="trigger">LB</div>
+            <div id="button-rs" class="trigger">RB</div>
+            <div id="button-ls-a" class="trigger">LB+A</div>
+            <div id="button-ls-x" class="trigger">LB+X</div>
+        </div>
+        <div id="buttons-function">
+            <div id="button-start" class="trigger">Start</div>
+            <div id="button-back" class="trigger">Back</div>
+            <div id="button-guide" class="trigger">Guide</div>
+            <div id="enable-rj" class="trigger">Enable RJoyButton</div>
+        </div>
+        <div id="buttons-ljoy" class="joy">
+            <div id="button-lstick" class="stick"></div>
+        </div>
+        <div id="buttons-abxy">
+            <div class="button" id="button-y">Y</div>
+            <div class="button" id="button-x">X</div>
+            <div class="button" id="button-b">B</div>
+            <div class="button" id="button-a">A</div>
+            <div id="button-rstick" class="stick"></div>
+        </div>
+    </div>
+    <script>
+        var ws = null;
+        var enable_rjoybutton = false;
+        var orientationQuery = window.matchMedia("(orientation: portrait)");
+        function buttonVibrate() {
+            navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate;
+            if (!navigator.vibrate) {
+                alert("Cannot vibrate!");
+            }
+            navigator.vibrate(1000);
+        }
+        function showPage(pageName, display) {
+            
+            document.getElementById("app-connect").style.display = 'none';
+            document.getElementById("app-rotate").style.display = 'none';
+            document.getElementById("app-fullscreen").style.display = 'none';
+            document.getElementById("app-control").style.display = 'none';
+
+            document.getElementById(pageName).style.display = display||'inline-block';
+        }
+        function enterFullScreen() {
+            showPage("app-control", "flex");
+            var element = document.getElementById("app-control");
+            element.requestFullscreen();
+        }
+        function onFullScreenChange() {
+            if (ws == null) return;
+            var isFullscreen = document.fullscreenElement ||
+                document.msFullscreenElement ||
+                document.mozFullScreenElement ||
+                document.webkitFullscreenElement || false;
+            if (isFullscreen) {
+                //showPage("app-control");
+                enterFullScreen();
+            } else {
+                showPage("app-fullscreen", "flex");
+            }
+        }
+        function onOrientationChange() {
+            if (ws == null) return;
+            if (orientationQuery.matches) {
+                showPage("app-rotate", "flex");
+            } else {
+                onFullScreenChange();
+            }
+        }
+        document.addEventListener("fullscreenchange", onFullScreenChange);
+        // window.addEventListener("orientationchange", onOrientationChange);
+        orientationQuery.addListener(onOrientationChange);
+        document.addEventListener('DOMContentLoaded', () => {
+            const endofProtocol = window.location.href.indexOf('://')+3;
+            const startofPort = window.location.href.indexOf(':', endofProtocol);
+            document.getElementById('ip-address').value = window.location.href.substring(endofProtocol, startofPort)
+
+            var form = document.getElementById("ip-port-form");
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const ip = document.getElementById('ip-address').value;
+                const port = document.getElementById('port').value;
+
+                if (!validateIP(ip)) {
+                    alert('Invalid IP address format.');
+                    return;
+                }
+
+                if (!validatePort(port)) {
+                    alert('Invalid port. Must be a number between 1 and 65535.');
+                    return;
+                }
+
+                var socket = new WebSocket("ws://" + ip + ":" + parseInt(port))
+                socket.onopen = (event) => {
+                    ws = socket;
+                    console.log("Start connection...");
+
+                    // ws = "fullfil";
+                    onOrientationChange();
+
+                    
+                };
+                socket.onclose = (event) => {
+                    console.log("Close connection...");
+                }
+            });
+
+            var buttons = [ 'a', 'b', 'x', 'y', 'ls', 'rs', 'start', 'back', 'guide', 'ls-x', 'ls-a' ];
+            var isRSPressing = false;
+            buttons.forEach(button_label => {
+                var button = document.getElementById("button-" + button_label);
+                button.addEventListener("touchstart", (event) => {
+                    event.preventDefault();
+                    button.classList.add("button_active");
+                    console.log(`pressed ${button_label}`);
+                    if (button_label == "rs") {
+                        isRSPressing = true;
+                    }
+                    ws.send(`pressed ${button_label}`);
+                });
+                button.addEventListener("touchend", (event) => {
+                    event.preventDefault();
+                    button.classList.remove("button_active");
+                    console.log(`released ${button_label}`)
+                    if (button_label == "rs") {
+                        isRSPressing = false;
+                    }
+                    ws.send(`released ${button_label}`);
+                })
+            });
+
+            function applyJoyStitck(direction, withDpad) {
+                var stick = document.getElementById(`button-${direction}stick`);
+                // var joypad = document.getElementById(`buttons-${direction}joy`);
+                var joypad = stick.parentElement;
+                const joypad_centerX = parseInt(window.getComputedStyle(joypad).width) / 2;
+                const joypad_centerY = parseInt(window.getComputedStyle(joypad).height) / 2;
+                const joypad_style = stick.style.transform;
+                var isMoved = false;
+                var pressedPosition = [];
+                var isMappingToRight = false;
+                function getjoystick_delta(event) {
+                    const touch = event.targetTouches[0];
+                    const new_joypad_rect = joypad.getBoundingClientRect();
+                    const deltaX = touch.clientX - new_joypad_rect.left;
+                    const deltaY = touch.clientY - new_joypad_rect.top;
+                    return [deltaX, deltaY];
+                }
+                function joystick_touchstart(event) {
+                    if (event.target != joypad && event.target != stick) {
+                        return;
+                    }
+                    event.preventDefault();
+                    isMoved = false;
+                    pressedPosition = getjoystick_delta(event);
+                    if (direction == "l" && isRSPressing) {
+                        isMappingToRight = true;
+                    }
+                }
+                function joystick_touchmove(event) {
+                    if (event.target != joypad && event.target != stick) {
+                        return;
+                    }
+                    event.preventDefault();
+                    isMoved = true;
+                    const [deltaX, deltaY] = getjoystick_delta(event);
+                    stick.style.transform = `translate(calc(${deltaX}px - 50%), calc(${deltaY}px - 50%))`;
+
+                    const fx = (deltaX - joypad_centerX) / joypad_centerX;
+                    const fy = (deltaY - joypad_centerY) / joypad_centerY;
+                    if (direction == "l" && isMappingToRight) {
+                        console.log(`moverjoy ${fx} ${fy} (mapping)`);
+                        ws.send(`moverjoy ${fx} ${fy}`)
+                    } else {
+                        console.log(`move${direction}joy ${fx} ${fy}`);
+                        ws.send(`move${direction}joy ${fx} ${fy}`)
+                    }
+                }
+                function joystick_touchend(event) {
+                    if (event.target != joypad && event.target != stick) {
+                        return;
+                    }
+                    event.preventDefault();
+                    stick.style.transform = joypad_style;
+                    if (isMoved) {
+                        if (direction == "l" && isMappingToRight) {
+                            ws.send(`moverjoy 0 0`); // mapping
+                        } else {
+                            ws.send(`move${direction}joy 0 0`);
+                        }
+                    } else {
+                        const [deltaX, deltaY] = pressedPosition;
+                        const diffX = deltaX - joypad_centerX;
+                        const diffY = deltaY - joypad_centerY;
+                        const distance2 = diffX * diffX + diffY * diffY;
+                        if (direction == "l" && isMappingToRight) {
+                            if (distance2 < (joypad_centerX * 2 / 8) * (joypad_centerY * 2 / 8)) {
+                                ws.send(`clicked rt`);
+                            }
+                        } else {
+                            if (withDpad) {
+                                if (distance2 < (joypad_centerX * 2 / 8) * (joypad_centerY * 2 / 8)) {
+                                    ws.send(`clicked ${direction}t`);
+                                } else {
+                                    const fx = (deltaX - joypad_centerX) / joypad_centerX;
+                                    const fy = (deltaY - joypad_centerY) / joypad_centerY;
+                                    if (fy > -fx) {
+                                        if (fy < fx) {
+                                            ws.send(`clicked dr`);
+                                        } else {
+                                            ws.send(`clicked dd`);
+                                        }
+                                    } else {
+                                        if (fy < fx) {
+                                            ws.send(`clicked du`);
+                                        } else {
+                                            ws.send(`clicked dl`);
+                                        }
+                                    }
+                                }
+                            } else {
+                                // for rjoy stitck
+                                if (distance2 < (joypad_centerX * 2 / 8) * (joypad_centerY * 2 / 8)) {
+                                    if (enable_rjoybutton) {
+                                        ws.send(`clicked ${direction}t`);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    isMappingToRight = false;
+                }
+                joypad.addEventListener('touchstart', joystick_touchstart);
+                joypad.addEventListener('touchmove', joystick_touchmove);
+                joypad.addEventListener('touchend', joystick_touchend);
+            };
+
+            applyJoyStitck('l', true);
+            applyJoyStitck('r', false);
+
+            var enablerj = document.getElementById("enable-rj");
+            enablerj.addEventListener("click", (event) => {
+                enable_rjoybutton = !enable_rjoybutton;
+                if (enable_rjoybutton) {
+                    enablerj.textContent  = "Disable RJoyButton";
+                } else {
+                    enablerj.textContent  = "Enable RJoyButton";
+                }
+            });
+
+            // enterFullScreen();
+        });
+    </script>
+</body>
+</html>
